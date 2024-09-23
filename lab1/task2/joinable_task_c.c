@@ -1,14 +1,18 @@
 #define _GNU_SOURCE
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 
 void* mythread(void* arg) {
-	return "hello world"; 
+	char* result = malloc(sizeof(char) * 13); 
+	strcpy(result, "hello world");
+	return result; 
 }
 
 int main() {
@@ -23,5 +27,6 @@ int main() {
 	}
 	pthread_join(tid, &ret_value);
 	printf("%s\n", (char*)ret_value);
+	free((char*)ret_value);
 	return 0;
 }

@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
 #include <errno.h>
@@ -8,13 +9,15 @@
 
 
 void* mythread(void* arg) {
-	return (void*)42; 
+	int* result = malloc(sizeof(int));
+	*result = 42;
+	return (void*)result; 
 }
 
 int main() {
 	pthread_t tid;
 	int err;
-	int ret_value;
+	int* ret_value;
 
 	err = pthread_create(&tid, NULL, mythread, NULL);
 	if (err) {
@@ -22,6 +25,7 @@ int main() {
 		return -1;
 	}
 	pthread_join(tid, (void**) &ret_value);
-	printf("%d\n", ret_value);
+	printf("%d\n", *ret_value);
+	free(ret_value);
 	return 0;
 }
