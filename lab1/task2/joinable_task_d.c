@@ -6,9 +6,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+int count = 0;
+
 
 void* mythread(void* arg) {
-	printf("mythread [%d]: Hello from mythread!\n", gettid()); 
+	count++;
+	printf("%d\n", count); 
 	return 0;
 }
 
@@ -23,7 +26,6 @@ int main() {
     		printf("main: pthread_create() failed: %s\n", strerror(err));
 			return -1;
 		}
-		pthread_join(tid, &ret_value);
 	}
 	return 0;
 }
