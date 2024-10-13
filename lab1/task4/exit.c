@@ -10,9 +10,7 @@
 
 void cleanup_handler(){
 	printf("%s", "cleanup!\n");
-	pthread_cleanup_push(cleanup_handler, NULL);	
 	pthread_exit(0);
-	pthread_cleanup_pop(1);
 }
 
 void* mythread(void* arg) {
