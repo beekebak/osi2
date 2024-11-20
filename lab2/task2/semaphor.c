@@ -40,6 +40,21 @@ queue_t* queue_init(int max_count) {
 		abort();
 	}
 
+	if ((err = sem_init(&q->empty, 0, max_count)) != 0) {
+       printf("sem_init empty failed: %s\n", strerror(err));
+       abort();
+    }
+
+	if ((err = sem_init(&q->full, 0, 0)) != 0) {
+       printf("sem_init full failed: %s\n", strerror(err));
+       abort();
+    }
+
+    if ((err = sem_init(&q->mutexx, 0, 1)) != 0) {
+       printf("sem_init mutexx failed: %s\n", strerror(err));
+       abort();
+    }
+
 	return q;
 }
 
@@ -52,17 +67,14 @@ void queue_destroy(queue_t *q) {
 	    	free(current);
     	current = next;
   	}
-
+	sem_destroy(&q->empty);
+    sem_destroy(&q->full);
+    sem_destroy(&q->mutexx);
  	free(q);
 }
 
 int queue_add(queue_t *q, int val) {
-	q->add_attempts++;
-
-	assert(q->count <= q->max_count);
-
-	if (q->count == q->max_count)
-		return 0;
+	sem_wait(&q->empty);
 
 	qnode_t *new = malloc(sizeof(qnode_t));
 	if (!new) {
@@ -73,6 +85,12 @@ int queue_add(queue_t *q, int val) {
 	new->val = val;
 	new->next = NULL;
 
+	sem_wait(&q->mutexx);
+	q->add_attempts++;
+
+	assert(q->count <= q->max_count);
+
+	//usleep(0);
 	if (!q->first)
 		q->first = q->last = new;
 	else {
@@ -82,26 +100,31 @@ int queue_add(queue_t *q, int val) {
 
 	q->count++;
 	q->add_count++;
+	sem_post(&q->mutexx);
+    sem_post(&q->full);
 
 	return 1;
 }
 
 int queue_get(queue_t *q, int *val) {
+	sem_wait(&q->full);
+    sem_wait(&q->mutexx);
 	q->get_attempts++;
 
 	assert(q->count >= 0);
-
-	if (q->count == 0)
-		return 0;
 
 	qnode_t *tmp = q->first;
 
 	*val = tmp->val;
 	q->first = q->first->next;
 
-	free(tmp);
 	q->count--;
 	q->get_count++;
+
+	free(tmp);
+
+	sem_post(&q->mutexx);
+    sem_post(&q->empty);
 
 	return 1;
 }

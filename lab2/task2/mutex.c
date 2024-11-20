@@ -40,6 +40,11 @@ queue_t* queue_init(int max_count) {
 		abort();
 	}
 
+	if ((err = pthread_mutex_init(&q->mutex, NULL)) != 0) {
+       printf("pthread_mutex_init failed: %s\n", strerror(err));
+       abort();
+   }
+
 	return q;
 }
 
@@ -52,18 +57,11 @@ void queue_destroy(queue_t *q) {
 	    	free(current);
     	current = next;
   	}
-
+	pthread_mutex_destroy(&q->mutex);
  	free(q);
 }
 
 int queue_add(queue_t *q, int val) {
-	q->add_attempts++;
-
-	assert(q->count <= q->max_count);
-
-	if (q->count == q->max_count)
-		return 0;
-
 	qnode_t *new = malloc(sizeof(qnode_t));
 	if (!new) {
 		printf("Cannot allocate memory for new node\n");
@@ -73,6 +71,18 @@ int queue_add(queue_t *q, int val) {
 	new->val = val;
 	new->next = NULL;
 
+	pthread_mutex_lock(&q->mutex);
+	q->add_attempts++;
+
+	assert(q->count <= q->max_count);
+
+	if (q->count == q->max_count){
+		pthread_mutex_unlock(&q->mutex);
+		free(new);
+		return 0;
+	}
+
+	//usleep(0);
 	if (!q->first)
 		q->first = q->last = new;
 	else {
@@ -82,26 +92,32 @@ int queue_add(queue_t *q, int val) {
 
 	q->count++;
 	q->add_count++;
+	pthread_mutex_unlock(&q->mutex);
 
 	return 1;
 }
 
 int queue_get(queue_t *q, int *val) {
+	pthread_mutex_lock(&q->mutex);
 	q->get_attempts++;
 
 	assert(q->count >= 0);
 
-	if (q->count == 0)
+	if (q->count == 0){
+		pthread_mutex_unlock(&q->mutex);
 		return 0;
+	}
 
 	qnode_t *tmp = q->first;
 
 	*val = tmp->val;
 	q->first = q->first->next;
 
-	free(tmp);
 	q->count--;
 	q->get_count++;
+	pthread_mutex_unlock(&q->mutex);
+
+	free(tmp);
 
 	return 1;
 }
