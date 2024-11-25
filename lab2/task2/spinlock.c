@@ -40,7 +40,7 @@ queue_t* queue_init(int max_count) {
 		abort();
 	}
 
-	if ((err = pthread_spin_init(&q->lock, NULL)) != 0) {
+	if ((err = pthread_spin_init(&q->lock, PTHREAD_PROCESS_PRIVATE)) != 0) {
        printf("pthread_spin_init failed: %s\n", strerror(err));
        abort();
    }
