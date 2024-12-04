@@ -60,11 +60,11 @@ void *writer(void *arg) {
 	queue_t *q = (queue_t *)arg;
 	printf("writer [%d %d %d]\n", getpid(), getppid(), gettid());
 
-	set_cpu(2);
+	set_cpu(1);
 
 	while (1) {
 		pthread_testcancel();
-		if(i % 50 == 0) usleep(1);
+		if(i % 20 == 0) usleep(1);
 		int ok = queue_add(q, i);
 		if (!ok)
 			continue;
@@ -74,7 +74,7 @@ void *writer(void *arg) {
 	return NULL;
 }
 
-int main() {
+int main(int argc, char** argv) {
 	pthread_t tidr;
 	pthread_t tidw;
 	queue_t *q;
@@ -82,7 +82,7 @@ int main() {
 
 	printf("main [%d %d %d]\n", getpid(), getppid(), gettid());
 
-	q = queue_init(1000000);
+	q = queue_init(atoi(argv[1]));
 
 	err = pthread_create(&tidr, NULL, reader, q);
 	if (err) {
@@ -90,7 +90,7 @@ int main() {
 		return -1;
 	}
 
-	//sched_yield();
+	sched_yield();
 
 	err = pthread_create(&tidw, NULL, writer, q);
 	if (err) {
