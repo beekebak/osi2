@@ -1,7 +1,5 @@
 #include "thread_pool.hpp"
 
-
-
 void* thread_func(void* arg){
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     proxy_server_t* server = static_cast<proxy_server_t*>(arg);
@@ -12,8 +10,7 @@ void* thread_func(void* arg){
 
 
 thread_pool_t::thread_pool_t(size_t num_threads): num_threads(num_threads), next(0), 
-        thread_ids(new pthread_t[num_threads]), proxy_servers(new proxy_server_t[num_threads]) {
-        
+        thread_ids(new pthread_t[num_threads]), proxy_servers(new proxy_server_t[num_threads]) {    
     for (size_t i = 0; i < num_threads; ++i){
         int res = pthread_create(thread_ids + i, NULL, thread_func, proxy_servers + i);
         if (res != 0){
