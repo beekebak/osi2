@@ -16,13 +16,9 @@ class selector_context_t{
     void update() noexcept;
   public:
     explicit selector_context_t();
-    //thread safe
     void register_file_descriptor(int fd, uint32_t op) noexcept;
-    //thread safe
     void change_descriptor_mode(int fd, uint32_t op) noexcept;
-    //thread safe
     void unregister_file_descriptor(int fd) noexcept;
-    //thread safe
     int do_select() noexcept;
     inline struct epoll_event& operator[](size_t i) {
         return events[i];

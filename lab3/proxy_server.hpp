@@ -86,9 +86,7 @@ class proxy_server_t{
   public:
     explicit proxy_server_t();
     ~proxy_server_t();
-    //thread_safe
     void add_client_socket(int fd);
-    //thread_safe
     void add_server_socket(int fd);
     void change_sock_mod(int fd, uint32_t op);
     void start_server_loop();
