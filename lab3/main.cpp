@@ -52,7 +52,6 @@ int main(int argc, char** argv){
         return -1;
     }
 
-
     size_t num_threads = NUM_THREADS;
     if (argc == 3){
         num_threads = std::stoul(argv[2]);
